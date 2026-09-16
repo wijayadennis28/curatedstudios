@@ -1,0 +1,320 @@
+/* MakOS-inspired: glass header + cards only. Everything else = theme.json. */
+.site-glass {
+  background: rgba(10, 10, 11, 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--wp--preset--color--line);
+}
+.card {
+  background: var(--wp--preset--color--surface);
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--wp--preset--border-radius--card);
+  overflow: hidden;
+}
+.card img { transition: transform 0.6s ease; display: block; }
+.card a:hover img { transform: scale(1.03); }
+/* Notes-style resume block */
+.notes {
+  background: var(--wp--preset--color--surface);
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--wp--preset--border-radius--card);
+}
+.notes hr { border: 0; border-top: 1px solid var(--wp--preset--color--line); }
+/* Focus = accessibility basics */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--wp--preset--color--accent);
+  outline-offset: 3px;
+}
+/* Home staged entrances: hero first, then header drops, footer rises (see body.is-ready) */
+@media (prefers-reduced-motion: no-preference) {
+  body.home:not(.is-ready) header .site-glass { opacity: 0; translate: 0 -100%; }
+  body.home:not(.is-ready) footer .site-glass { opacity: 0; translate: 0 100%; }
+  body.home:not(.is-ready) .hero-carousel-wrap { opacity: 0; translate: 0 8vh; }
+  body.home.is-ready header .site-glass {
+    transition: opacity 0.8s ease 1.5s, translate 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 1.5s;
+  }
+  body.home.is-ready footer .site-glass {
+    transition: opacity 0.8s ease 1.7s, translate 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 1.7s;
+  }
+  body.home.is-ready .hero-carousel-wrap {
+    transition: opacity 1s ease 0.9s, translate 1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.9s;
+  }
+  /* skip paths (repeat visits): everything snaps in, no ghost entrances */
+  body.home.is-instant header .site-glass,
+  body.home.is-instant footer .site-glass,
+  body.home.is-instant .hero-carousel-wrap,
+  body.home.is-instant .hero-brand { transition: none !important; }
+}
+/* Header row holds only the nav on Home: pin it right; logo hidden there */
+body.home header.wp-block-template-part .wp-block-group.alignwide { justify-content: flex-end; }
+body.home header .wp-block-site-logo { display: none; }
+/* Home: frosted bars float over a full-bleed slider, one viewport, no scroll */
+body.home .wp-site-blocks {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+}
+/* About entrance cascade: pure keyframes, no JS trigger needed */
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 20px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .about-enter > * { animation: rise-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  .about-enter > :nth-child(2) { animation-delay: 0.15s; }
+  .about-enter > :nth-child(3) { animation-delay: 0.3s; }
+  .about-enter > :nth-child(4) { animation-delay: 0.45s; }
+}
+/* Equal-height cards in columns (e.g. About services) */
+.wp-block-columns > .wp-block-column { display: flex; flex-direction: column; }
+.wp-block-columns > .wp-block-column > .card { flex: 1; }
+/* Sticky footer: short pages still end at the viewport bottom */
+.wp-site-blocks {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+footer.wp-block-template-part { margin-top: auto; width: 100%; }
+/* Frosted bars, every page: white melt + blur, tall, light content */
+header .site-glass {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: 1rem !important; /* beats part inline padding */
+  padding-bottom: 3rem !important;
+  background: linear-gradient(rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+  -webkit-backdrop-filter: blur(18px) saturate(1.8);
+  backdrop-filter: blur(18px) saturate(1.8);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  border: 0;
+}
+footer .site-glass {
+  border: 0;
+  background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.22));
+  -webkit-backdrop-filter: blur(18px) saturate(1.8);
+  backdrop-filter: blur(18px) saturate(1.8);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+}
+/* Home floats its bars over the slider; elsewhere header sticks, footer flows */
+body.home header .site-glass { position: absolute; left: 0; right: 0; }
+body.home footer .site-glass { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; }
+/* Work coverflow: iTunes 3D stack (progressive enhancement over the Query grid) */
+.coverflow {
+  position: relative;
+  perspective: 1200px;
+  padding: 1rem 0 0.5rem;
+}
+.coverflow-deck {
+  position: relative;
+  height: clamp(320px, 52vh, 520px);
+  transform-style: preserve-3d;
+}
+.coverflow-slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: clamp(200px, 26vw, 320px);
+  aspect-ratio: 3 / 4;
+  margin-left: calc(clamp(200px, 26vw, 320px) / -2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--wp--preset--color--surface);
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.6s ease, filter 0.6s ease;
+}
+.coverflow-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.coverflow-caption {
+  text-align: center;
+  font-family: var(--wp--preset--font-family--serif);
+  font-size: var(--wp--preset--font-size--xl);
+  margin: 1.25rem 0 0;
+}
+.coverflow-sub {
+  text-align: center;
+  color: var(--wp--preset--color--muted);
+  font-size: var(--wp--preset--font-size--sm);
+  margin: 0.35rem 0 0;
+}
+.coverflow .hero-arrow { position: absolute; top: 42%; translate: 0 -50%; z-index: 200; }
+.coverflow .flow-prev { left: 0.5rem; }
+.coverflow .flow-next { right: 0.5rem; }
+@media (prefers-reduced-motion: reduce) {
+  .coverflow-slide { transition: none; }
+}
+/* Portfolio entrance cascade: heading -> subtitle -> flow -> caption */
+@media (prefers-reduced-motion: no-preference) {
+  body.post-type-archive-shoot:not(.is-ready) .coverflow-page > h1,
+  body.post-type-archive-shoot:not(.is-ready) .coverflow-page > p:first-of-type,
+  body.post-type-archive-shoot:not(.is-ready) .coverflow-caption,
+  body.post-type-archive-shoot:not(.is-ready) .coverflow-sub { opacity: 0; translate: 0 20px; }
+  body.post-type-archive-shoot:not(.is-ready) .coverflow { opacity: 0; translate: 0 5vh; }
+  body.post-type-archive-shoot.is-ready .coverflow-page > h1 {
+    transition: opacity 0.7s ease 0.1s, translate 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s;
+  }
+  body.post-type-archive-shoot.is-ready .coverflow-page > p:first-of-type {
+    transition: opacity 0.7s ease 0.25s, translate 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.25s;
+  }
+  body.post-type-archive-shoot.is-ready .coverflow {
+    transition: opacity 1s ease 0.4s, translate 1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.4s;
+  }
+  body.post-type-archive-shoot.is-ready .coverflow-caption,
+  body.post-type-archive-shoot.is-ready .coverflow-sub {
+    transition: opacity 0.6s ease 0.6s, translate 0.6s ease 0.6s;
+  }
+}
+/* White bars, light content per owner request — low contrast over bright photos */
+header .site-glass,
+footer .site-glass { color: #F5F5F7; }
+header .site-glass a,
+footer .site-glass a,
+header .site-glass .wp-block-navigation-item__label { color: #F5F5F7; }
+footer .site-glass .wp-block-social-link svg { fill: #F5F5F7; }
+body.home .hero-carousel-wrap { height: 100%; }
+.hero-carousel {
+  position: relative;
+  height: clamp(420px, 85vh, 900px);
+  overflow: hidden;
+  background: #000;
+}
+.hero-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.hero-track > figure.wp-block-image {
+  flex: 0 0 100%;
+  max-width: 100%;
+  margin: 0;
+}
+.hero-carousel figure.wp-block-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+/* No JS: first slide only (rule dies once JS nests slides in the track) */
+.hero-carousel > figure.wp-block-image:not(:first-child) { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-track { transition: none; }
+}
+/* Centered hero brand mark (JS-injected, swipe-safe) */
+.hero-brand {
+  position: absolute;
+  top: 50%;
+  right: clamp(1.5rem, 4vw, 4rem);
+  translate: 0 -50%;
+  z-index: 4;
+  width: min(200px, 44vw);
+  pointer-events: none;
+}
+.hero-brand img { width: 100%; height: auto; display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  /* hidden until the slider's turn (covers pre-lift + waiting window) */
+  body.home:not(.is-playing) .hero-brand { opacity: 0; translate: 0 calc(-50% - 35vh); scale: 0.96; }
+  /* full-play only: is-staged is absent on skips, so repeats snap in instantly */
+  body.home.is-playing.is-staged .hero-brand {
+    transition: opacity 1.2s ease-out 0.2s, translate 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.2s, scale 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.2s;
+  }
+}
+/* Bottom pill controls: prev + dots + next, floating above the footer bar */
+.hero-dots {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  bottom: 6rem; /* sits just above the footer bar; adjust if bar height changes */
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem;
+  border: 0;
+  background: transparent;
+}
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.hero-dot.is-active { width: 26px; background: #fff; }
+/* Translucent glass arrows (now living inside the pill) */
+.hero-arrow {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(10, 10, 11, 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  opacity: 0.65;
+  cursor: pointer;
+  padding: 0;
+}
+.hero-arrow:hover { opacity: 1; }
+/* Editor: stack slides normally so images stay pickable/reorderable */
+.editor-styles-wrapper .hero-carousel { height: auto; }
+/* Home: slider runs full-bleed behind both floating bars */
+body.home .hero-carousel { height: 100vh; height: 100svh; }
+/* Front-page loader: black curtain + mark, lifts away on .is-done */
+.site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.75s;
+}
+.site-loader img { max-width: min(240px, 50vw); height: auto; }
+.site-loader-word {
+  font-family: var(--wp--preset--font-family--serif);
+  font-size: clamp(1.75rem, 1.25rem + 2vw, 2.5rem);
+  letter-spacing: 0.01em;
+  color: var(--wp--preset--color--ink);
+}
+.site-loader img,
+.site-loader-word {
+  opacity: 0;
+  translate: 0 -42svh;
+  scale: 0.94;
+  transition: opacity 0.7s ease-out, translate 0.7s cubic-bezier(0.22, 0.61, 0.36, 1), scale 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.site-loader.is-in img,
+.site-loader.is-in .site-loader-word { opacity: 1; translate: 0 0; scale: 1; }
+.site-loader.is-done { transform: translateY(-101%); }
+.site-loader.is-done img,
+.site-loader.is-done .site-loader-word { opacity: 0; translate: 0 -42svh; transition: opacity 0.65s ease-out, translate 0.65s cubic-bezier(0.22, 0.61, 0.36, 1); }
+/* ponytail: !important only to beat core constrained-layout caps + editor inline dims */
+body.home .hero-carousel-wrap > .hero-carousel,
+body.home .hero-carousel > .hero-track,
+body.home .hero-carousel > figure.wp-block-image {
+  max-width: none;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+body.home { overflow-x: clip; }
+body.home .hero-carousel-wrap,
+body.home .hero-carousel { padding-left: 0; padding-right: 0; margin-top: 0; margin-bottom: 0; }
+body.home .hero-carousel-wrap {
+  width: auto;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+body.home .hero-carousel figure.wp-block-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}

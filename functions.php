@@ -1,6 +1,6 @@
 <?php
 /**
- * Curated Studios– minimal block theme setup.
+ * Photographer MakOS – minimal block theme setup.
  */
 
 add_action( 'after_setup_theme', function () {
@@ -15,10 +15,10 @@ add_action( 'wp_enqueue_scripts', function () {
 	// filemtime = auto cache-bust, style.css version stays untouched.
 	$css = get_template_directory() . '/assets/css/glass.css';
 	$js  = get_template_directory() . '/assets/js/carousel.js';
-	wp_enqueue_style( 'curated-studios', get_template_directory_uri() . '/assets/css/glass.css', [], filemtime( $css ) );
+	wp_enqueue_style( 'photographer-makos', get_template_directory_uri() . '/assets/css/glass.css', [], filemtime( $css ) );
 	if ( is_front_page() ) {
 		wp_enqueue_script(
-			'curated-studios-carousel',
+			'photographer-makos-carousel',
 			get_template_directory_uri() . '/assets/js/carousel.js',
 			[],
 			filemtime( $js ),
@@ -26,17 +26,17 @@ add_action( 'wp_enqueue_scripts', function () {
 		);
 		// Loader runs in <head> (no defer) so black paints before first content paint.
 		$loader = get_template_directory() . '/assets/js/loader.js';
-		wp_enqueue_script( 'curated-studios-loader', get_template_directory_uri() . '/assets/js/loader.js', [], filemtime( $loader ), false );
+		wp_enqueue_script( 'photographer-makos-loader', get_template_directory_uri() . '/assets/js/loader.js', [], filemtime( $loader ), false );
 		$logo_id = get_theme_mod( 'custom_logo' );
-		wp_localize_script( 'curated-studios-loader', 'photoLoader', [
+		wp_localize_script( 'photographer-makos-loader', 'photoLoader', [
 			'logo' => $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '',
 			'name' => get_bloginfo( 'name' ),
 		] );
 	}
-	if ( is_post_type_archive( 'shoot' ) ) {
+	if ( is_post_type_archive( 'shoot' ) || is_page( 'portfolio' ) ) {
 		$flow = get_template_directory() . '/assets/js/coverflow.js';
 		wp_enqueue_script(
-			'curated-studios-coverflow',
+			'photographer-makos-coverflow',
 			get_template_directory_uri() . '/assets/js/coverflow.js',
 			[],
 			filemtime( $flow ),
@@ -48,11 +48,11 @@ add_action( 'wp_enqueue_scripts', function () {
 // ponytail: one CPT in theme (not plugin) – fine until you reuse shoots on a 2nd site.
 add_action( 'init', function () {
 	register_post_type( 'shoot', [
-		'label'         => __( 'Shoots', 'curated-studios' ),
+		'label'         => __( 'Shoots', 'photographer-makos' ),
 		'public'        => true,
 		'show_in_rest'  => true,
 		'has_archive'   => true,
-		'rewrite'       => [ 'slug' => 'portfolio' ],
+		'rewrite'       => [ 'slug' => 'shoot' ],
 		'menu_icon'     => 'dashicons-camera',
 		'supports'      => [ 'title', 'editor', 'thumbnail', 'excerpt' ],
 		'show_in_nav_menus' => true,
@@ -64,7 +64,7 @@ add_action( 'init', function () {
 	] );
 
 	register_taxonomy( 'shoot_type', 'shoot', [
-		'label'        => __( 'Shoot types', 'curated-studios' ),
+		'label'        => __( 'Shoot types', 'photographer-makos' ),
 		'public'       => true,
 		'show_in_rest' => true,
 		'hierarchical' => true,
@@ -88,7 +88,7 @@ add_action( 'enqueue_block_editor_assets', function () {
 	if ( $screen && $screen->post_type === 'shoot' ) {
 		$js = get_template_directory() . '/assets/js/shoot-link.js';
 		wp_enqueue_script(
-			'curated-studios-shoot-link',
+			'photographer-makos-shoot-link',
 			get_template_directory_uri() . '/assets/js/shoot-link.js',
 			[ 'wp-plugins', 'wp-edit-post', 'wp-components', 'wp-data', 'wp-element' ],
 			filemtime( $js ),
@@ -113,8 +113,12 @@ add_filter( 'render_block', function ( $html, $block ) {
 	return preg_replace( '/href="[^"]*"/', 'href="' . esc_url( $url ) . '"', $html, 1 );
 }, 10, 2 );
 
-// 301: old /work/* URLs (bookmarks, Google) land on /portfolio/*.
+// 301s: legacy /work/* URLs land on /shoot/* (Portfolio itself is a Page now,
+// so only deeper legacy paths redirect — never the /portfolio page).
 add_action( 'template_redirect', function () {
+	if ( is_page() || is_singular( 'shoot' ) || is_post_type_archive( 'shoot' ) ) {
+		return; // real content always wins over legacy redirects
+	}
 	$path = strtok( $_SERVER['REQUEST_URI'] ?? '', '?' ) ?: '/';
 	if ( ! preg_match( '#(^|/)work(/|$)#', $path ) ) {
 		return;
@@ -123,8 +127,24 @@ add_action( 'template_redirect', function () {
 	$rel = $home_path !== '' && str_starts_with( $path, $home_path )
 		? substr( $path, strlen( $home_path ) )
 		: $path;
-	wp_redirect( home_url( preg_replace( '#/work(?=/|$)#', '/portfolio', $rel, 1 ) ), 301 );
+	wp_redirect( home_url( preg_replace( '#/work(?=/|$)#', '/shoot', $rel, 1 ) ), 301 );
 	exit;
+} );
+// 301s: brief /portfolio/<shoot>/ era singles land on /shoot/<shoot>/.
+// Exact /portfolio/ is the Page — never redirected.
+add_action( 'template_redirect', function () {
+	if ( is_page() ) {
+		return; // real Pages (incl. future Portfolio children) always win
+	}
+	$path = strtok( $_SERVER['REQUEST_URI'] ?? '', '?' ) ?: '/';
+	$home_path = rtrim( (string) wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
+	$rel = $home_path !== '' && str_starts_with( $path, $home_path )
+		? substr( $path, strlen( $home_path ) )
+		: $path;
+	if ( preg_match( '#^/portfolio/.+#', $rel ) ) {
+		wp_redirect( home_url( preg_replace( '#^/portfolio/#', '/shoot/', $rel, 1 ) ), 301 );
+		exit;
+	}
 } );
 
 // Perf: keep srcset/lazy-load from core, no extra image sizes.
